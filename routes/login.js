@@ -2,28 +2,49 @@ var login=require("../models/login")
 var express=require("express")
 const bodyParser = require('body-parser')
 var router=express.Router()
+const passport = require('passport');
+var jwt = require('jwt-simple');
+var secret="very secret"
 // parse application/x-www-form-urlencoded
 router.use(bodyParser.urlencoded({ extended: false }))
 
-
-
-
-router.post("/",async (req,res,next)=>{
-    var id =req.body.login
+router.post('/',async function(req,res,next){
+    var id=req.body.id
     var password=req.body.password
-    console.log("hello"+id)
-    var hello=await login.login(id,password)
-    req.session.username=hello
-    console.log(hello)
-    console.log(req.session.username)
-    res.send(hello)
-   
-})
-router.get("/",(req,res,next)=>{
-    if(req.session.username!="")
-    res.send(req.session.username)
+    console.log(req.body)
+    if(id.length>6 && password.length>6)
+    {
+        var hello=await login.login(id,password)
+        console.log(hello.id)
+        var token = jwt.encode(hello, secret);
+        res.send(token)
+        console.log("Token is"+token)
+        req.login(hello.id,function(err){
+            console.log("hello"+hello.id)
+            res.send(req.user)
+        })
+        var decoded = jwt.decode(token, secret);
+        // var parse=JSON.parse(decoded)
+        console.log("Object is")
+        console.log(decoded);
+        
+    }
     else
-    res.send("gg")
+        {
+            console.log("LOL")
+            res.status(505).send("WTF")
+        }
+})
+router.get('/checkauth', passport.authenticate('local'), function(req, res){
+
+    res.status(200).json({
+        status: 'Login successful!'
+    });
+
+});
+router.get("/",(req,res,next)=>{
+    console.log("hello")
+   console.log("GG"+req.user)
 })
 router.get("/index",(req,res,next)=>{
     
@@ -41,7 +62,7 @@ router.get("/index",(req,res,next)=>{
     //      });
  })
 router.get("/logout",(req,res,next)=>{
-    req.session.username="";
-    console.log(err)
+    req.logout();
+    next()
 })
 module.exports=router

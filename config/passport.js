@@ -1,38 +1,25 @@
 const LocalStrategy = require('passport-local').Strategy;
-
-
 // Load User model
 const User = require('../models/login');
 
 module.exports = function(passport) {
-  passport.use(
-    new LocalStrategy({ usernameField: 'email' }, (email, password, done) => {
-      // Match user
-      (User.login(email,password)).then(user => {
-        if (!user) {
-          return done(null, false, { message: 'That email is not registered' });
-        }
-
-        // Match password
-        // bcrypt.compare(password, user.password, (err, isMatch) => {
-        //   if (err) throw err;
-        //   if (isMatch) {
-        //     return done(null, user);
-        //   } else {
-        //     return done(null, false, { message: 'Password incorrect' });
-        //   }
-        // });
-      });
+  passport.use({usernameField:"emp_id", passwordField:"password"},
+    new LocalStrategy((id, password,done) => {
+      console.log(id)
+      console.log(password)
+      var user=User.login(id,password)
+      done(null,user)
+    
     })
   );
 
-  passport.serializeUser(function(user, done) {
-    done(null, user.id);
+  passport.serializeUser(function(id, done) {
+    done(null, id);
   });
 
-  passport.deserializeUser(function(id, done) {
-    User.findById(id, function(err, user) {
-      done(err, user);
+  passport.deserializeUser(async function(id, done) {
+      var user =await User.get_user(id)
+      done(null,user);
     });
-  });
+
 };

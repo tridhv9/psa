@@ -1,7 +1,12 @@
 var router=require("express").Router()
-router.get("/",(req,res)=>{
-    if(req.session.username!="")
-        res.send("hello world")
+var jwt = require('jwt-simple');
+var secret="very secret"
+router.get("/",async (req,res)=>{
+   if(req.params.user)
+    var decoded = jwt.decode(token, secret);
+    // var parse=JSON.parse(decoded)
+    console.log("Object is")
+    console.log(decoded);
 })
 
 module.exports=router
